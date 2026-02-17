@@ -9,6 +9,7 @@ import { StepIndicator } from "../StepIndicator/StepIndicator";
 import { Snackbar } from "../Snackbar/Snackbar";
 import { findMatchingStyles } from "../../utils/findMatchingStyles";
 import { buildCoreEmailHtml_2cols } from "../../utils/emailBuilder";
+import { sendEmail } from "../../services/services";
 import {
   StyledFormContainer,
   StyledFormContent,
@@ -134,12 +135,12 @@ export const StepByStepForm: React.FC = () => {
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>(
-    {}
+    {},
   );
 
   const updateFormData = <K extends keyof FormData>(
     field: K,
-    value: FormData[K]
+    value: FormData[K],
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
@@ -230,7 +231,7 @@ export const StepByStepForm: React.FC = () => {
         {
           ctaUrl: "https://www.corealternativas.com/estilismo-personalizado",
           ctaLabel: "Reservar asesoría",
-        }
+        },
       );
 
       const body = {
@@ -241,17 +242,11 @@ export const StepByStepForm: React.FC = () => {
         formData,
       };
 
-      const response = await fetch("http://localhost:3000/send-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const response = await sendEmail(body);
 
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(
-          (err as { message?: string }).message || "Error al enviar el email"
-        );
+      if (response.status < 200 || response.status >= 300) {
+        const err = (response.data as any) || {};
+        throw new Error(err.message || "Error al enviar el email");
       }
 
       setSnackbar({
@@ -265,7 +260,9 @@ export const StepByStepForm: React.FC = () => {
       setSnackbar({
         open: true,
         message:
-          error instanceof Error ? error.message : "Hubo un error. Intenta nuevamente.",
+          error instanceof Error
+            ? error.message
+            : "Hubo un error. Intenta nuevamente.",
         variant: "error",
       });
     }
@@ -547,7 +544,9 @@ export const StepByStepForm: React.FC = () => {
         </StyledButtonContainer>
       </StyledFormContent>
       <Snackbar
-        key={snackbar.open ? `${snackbar.message}-${snackbar.variant}` : "closed"}
+        key={
+          snackbar.open ? `${snackbar.message}-${snackbar.variant}` : "closed"
+        }
         open={snackbar.open}
         message={snackbar.message}
         variant={snackbar.variant}
