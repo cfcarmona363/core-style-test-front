@@ -7,6 +7,7 @@ export async function sendEmail(body: unknown) {
 
   const response = await axios.post(url, body, {
     headers: { "Content-Type": "application/json" },
+    withCredentials: true,
   });
 
   return response;
