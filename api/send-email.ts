@@ -1,10 +1,56 @@
-import { sendEmail } from "./mail";
+import nodemailer, { type Transporter } from "nodemailer";
 import type {
   SendEmailBody,
   SendEmailSuccessResponse,
   SendEmailErrorResponse,
   HealthResponse,
 } from "./types";
+
+/**
+ * Creates a Nodemailer transporter configured for Gmail.
+ */
+function createTransporter(): Transporter {
+  const user = process.env.GMAIL_USER;
+  const pass = process.env.GMAIL_APP_PASSWORD;
+
+  if (!user || !pass) {
+    throw new Error(
+      "Missing GMAIL_USER or GMAIL_APP_PASSWORD in environment.",
+    );
+  }
+
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user,
+      pass,
+    },
+  });
+}
+
+/**
+ * Send an email with HTML (and optional plain-text fallback).
+ */
+async function sendEmail(
+  options: SendEmailBody & { subject?: string },
+): Promise<{ messageId: string }> {
+  const { to, subject = "No subject", html, text, replyTo } = options;
+
+  const transporter = createTransporter();
+  const from = process.env.GMAIL_USER as string;
+
+  const mailOptions = {
+    from: `"${process.env.GMAIL_FROM_NAME || "Mail Service"}" <${from}>`,
+    to,
+    subject,
+    html,
+    ...(text && { text }),
+    ...(replyTo && { replyTo }),
+  };
+
+  const result = await transporter.sendMail(mailOptions);
+  return { messageId: result.messageId };
+}
 
 function setCorsHeaders(req: any, res: any) {
   const origin = req.headers.origin;
