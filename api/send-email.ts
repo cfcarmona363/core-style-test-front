@@ -3,7 +3,6 @@ import type {
   SendEmailBody,
   SendEmailSuccessResponse,
   SendEmailErrorResponse,
-  HealthResponse,
 } from "./types";
 
 /**
@@ -14,9 +13,7 @@ function createTransporter(): Transporter {
   const pass = process.env.GMAIL_APP_PASSWORD;
 
   if (!user || !pass) {
-    throw new Error(
-      "Missing GMAIL_USER or GMAIL_APP_PASSWORD in environment.",
-    );
+    throw new Error("Missing GMAIL_USER or GMAIL_APP_PASSWORD in environment.");
   }
 
   return nodemailer.createTransport({
@@ -90,15 +87,8 @@ export default async function handler(req: any, res: any): Promise<void> {
     return;
   }
 
-  if (req.method === "GET" && (req.url === "/health" || req.url === "/")) {
-    sendJson(res, 200, { ok: true } as HealthResponse);
-    return;
-  }
-
-  if (
-    req.method === "POST" &&
-    (req.url === "/send-email" || req.url?.startsWith("/send-email?"))
-  ) {
+  // Handle POST requests to send emails
+  if (req.method === "POST") {
     try {
       const body = parseBody(req.body);
 
@@ -148,10 +138,9 @@ export default async function handler(req: any, res: any): Promise<void> {
         error: `Failed to send email: ${errorMessage}`,
       } as SendEmailErrorResponse);
     }
-    return;
+  } else {
+    sendJson(res, 405, {
+      error: "Method not allowed",
+    } as SendEmailErrorResponse);
   }
-
-  sendJson(res, 404, {
-    error: "Not found",
-  } as SendEmailErrorResponse);
 }
