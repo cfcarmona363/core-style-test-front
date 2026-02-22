@@ -6,13 +6,6 @@ import type {
   HealthResponse,
 } from "./types";
 
-const ALLOWED_ORIGINS = [
-  "https://core-style-test-front.vercel.app",
-  "http://localhost:3000",
-  "http://localhost:3001",
-  "http://localhost:5173",
-];
-
 function setCorsHeaders(req: any, res: any) {
   const origin = req.headers.origin;
   // Always allow from frontend
