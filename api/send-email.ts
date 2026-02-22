@@ -1,8 +1,10 @@
 import nodemailer, { type Transporter } from "nodemailer";
+import { Client } from "@notionhq/client";
 import type {
   SendEmailBody,
   SendEmailSuccessResponse,
   SendEmailErrorResponse,
+  FormData,
 } from "./types";
 
 /**
@@ -47,6 +49,92 @@ async function sendEmail(
 
   const result = await transporter.sendMail(mailOptions);
   return { messageId: result.messageId };
+}
+
+/** Allowed Gender options in Notion (select). */
+const GENDER_OPTIONS = [
+  "mujer",
+  "hombre",
+  "no-binario",
+  "otro",
+  "prefiero-no-decir",
+] as const;
+
+/** Fit options in Notion (select). Form "ajuste" is mapped to these. */
+const FIT_MAP: Record<string, string> = {
+  suelta: "Más bien suelta",
+  "mas bien suelta": "Más bien suelta",
+  ajustada: "Más bien ajustada",
+  "mas bien ajustada": "Más bien ajustada",
+};
+
+function toFitSelect(ajuste: string): string {
+  const key = ajuste.trim().toLowerCase();
+  return FIT_MAP[key] ?? "Más bien suelta";
+}
+
+/**
+ * Maps a string value to Notion rich_text property.
+ */
+function richText(value: string): {
+  rich_text: [{ text: { content: string } }];
+} {
+  return {
+    rich_text: [{ text: { content: value || "—" } }],
+  };
+}
+
+/**
+ * Saves form data as a new row in the configured Notion database.
+ */
+async function saveToNotion(data: FormData): Promise<void> {
+  const databaseId = process.env.NOTION_DB_ID;
+  const notionToken = process.env.NOTION_TOKEN;
+
+  if (!databaseId) {
+    throw new Error("Missing NOTION_DB_ID in environment.");
+  }
+  if (!notionToken) {
+    throw new Error("Missing NOTION_TOKEN in environment.");
+  }
+
+  const notion = new Client({ auth: notionToken });
+
+  const generoNormalized = data.genero.trim().toLowerCase();
+  const genderSelect =
+    generoNormalized &&
+    GENDER_OPTIONS.includes(generoNormalized as (typeof GENDER_OPTIONS)[number])
+      ? generoNormalized
+      : "prefiero-no-decir";
+
+  await notion.pages.create({
+    parent: { database_id: databaseId },
+    properties: {
+      Name: {
+        title: [{ text: { content: data.nombre || "—" } }],
+      },
+      "Last Name": richText(data.apellido),
+      Email: {
+        email: data.email.trim() ? data.email.trim() : null,
+      },
+      Gender: {
+        select: { name: genderSelect },
+      },
+      Location: richText(data.ubicacion),
+      Fit: {
+        select: { name: toFitSelect(data.ajuste) },
+      },
+      Personality: {
+        multi_select: data.personalidad
+          .filter(Boolean)
+          .map((name) => ({ name: String(name).trim() })),
+      },
+      Characteristics: richText(data.caracteristicas),
+      Time: richText(data.tiempo),
+      "Communications Accepted": { checkbox: data.comunicaciones },
+      "Data Processing Accepted": { checkbox: data.procesamiento },
+    },
+  });
 }
 
 function setCorsHeaders(req: any, res: any) {
@@ -114,6 +202,21 @@ export default async function handler(req: any, res: any): Promise<void> {
         text: text != null ? String(text) : undefined,
         replyTo: replyTo != null ? String(replyTo).trim() : undefined,
       });
+
+      // Save form data to Notion if provided
+      const formData = body.formData as FormData | undefined;
+      if (formData != null && typeof formData === "object") {
+        try {
+          await saveToNotion(formData);
+          console.log("[send-email] Form data saved to Notion");
+        } catch (notionErr) {
+          console.error(
+            "[send-email] Warning: Failed to save to Notion:",
+            notionErr instanceof Error ? notionErr.message : String(notionErr),
+          );
+          // Don't fail the request if Notion save fails
+        }
+      }
 
       sendJson(res, 200, {
         success: true,
