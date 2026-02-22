@@ -55,12 +55,6 @@ export default async function handler(req: any, res: any): Promise<void> {
   ) {
     try {
       const body = parseBody(req.body);
-      console.log(
-        "[send-email] Request body keys:",
-        Object.keys(body ?? {}),
-        "has formData:",
-        "formData" in (body ?? {}),
-      );
 
       const { to, subject, html, text, replyTo } = body as SendEmailBody;
 
@@ -90,9 +84,22 @@ export default async function handler(req: any, res: any): Promise<void> {
         messageId: result.messageId,
       } as SendEmailSuccessResponse);
     } catch (err) {
-      console.error("[send-email] Error:", err);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error("[send-email] Error:", errorMessage);
+      console.error(
+        "[send-email] Stack:",
+        err instanceof Error ? err.stack : "No stack",
+      );
+      console.error(
+        "[send-email] Env check - GMAIL_USER:",
+        process.env.GMAIL_USER ? "SET" : "NOT SET",
+      );
+      console.error(
+        "[send-email] Env check - GMAIL_APP_PASSWORD:",
+        process.env.GMAIL_APP_PASSWORD ? "SET" : "NOT SET",
+      );
       sendJson(res, 500, {
-        error: `Failed to send email: ${err instanceof Error ? err.message : String(err)}`,
+        error: `Failed to send email: ${errorMessage}`,
       } as SendEmailErrorResponse);
     }
     return;
