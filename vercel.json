@@ -1,9 +1,4 @@
 {
   "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "env": {
-    "GMAIL_USER": "@GMAIL_USER",
-    "GMAIL_APP_PASSWORD": "@GMAIL_APP_PASSWORD",
-    "GMAIL_FROM_NAME": "@GMAIL_FROM_NAME"
-  }
+  "devCommand": "npm run dev"
 }
