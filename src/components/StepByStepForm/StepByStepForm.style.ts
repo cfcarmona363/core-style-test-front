@@ -16,8 +16,7 @@ export const StyledMiddleSection = styled.div`
   padding: ${({ theme }) => theme.spacing.xl} ${({ theme }) => theme.spacing.lg};
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    padding: ${({ theme }) => theme.spacing.lg}
-      ${({ theme }) => theme.spacing.md};
+    padding: ${({ theme }) => theme.spacing.lg} 0;
     margin-bottom: 160px;
   }
 
@@ -49,6 +48,7 @@ export const StyledMainContent = styled.div`
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     gap: ${({ theme }) => theme.spacing.lg};
+    width: 85%;
   }
 `;
 
@@ -265,8 +265,7 @@ export const StyledHeaderSection = styled.div`
   flex-shrink: 0;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    padding: ${({ theme }) => theme.spacing.lg}
-      ${({ theme }) => theme.spacing.md};
+    padding: ${({ theme }) => theme.spacing.lg} 0;
   }
 `;
 
@@ -285,7 +284,7 @@ export const StyledFormContent = styled.div`
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     grid-template-columns: 1fr;
     max-width: 100%;
-    padding: 0 ${({ theme }) => theme.spacing.md};
+    padding: 0;
     gap: ${({ theme }) => theme.spacing.lg};
     align-items: stretch;
   }

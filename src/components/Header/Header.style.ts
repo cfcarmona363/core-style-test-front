@@ -11,14 +11,23 @@ export const StyledHeader = styled.header`
   top: 0;
   z-index: 100;
   overflow-x: hidden;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    /* remove side padding on mobile, keep vertical spacing */
+    padding: ${({ theme }) => theme.spacing.sm} 0;
+  }
 `;
 
 export const StyledHeaderContent = styled.div`
-  width: 80%;
+  width: 85%;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: ${({ theme }) => theme.spacing.xl};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    width: 85%;
+  }
 `;
 
 export const StyledLogoWrapper = styled.div`
