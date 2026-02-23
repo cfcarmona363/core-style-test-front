@@ -27,7 +27,7 @@ export const Select: React.FC<SelectProps> = ({
   helperText,
   required = false,
   error,
-  placeholder = "Please Select",
+  placeholder = "Selecciona una opción",
   id,
   ...props
 }) => {

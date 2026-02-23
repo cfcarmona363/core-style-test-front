@@ -1,27 +1,69 @@
 import styled from "styled-components";
 
 export const StyledHeader = styled.header`
-  background-color: ${({ theme }) => theme.colors.secondary};
-  padding: ${({ theme }) => theme.spacing.lg} ${({ theme }) => theme.spacing.xl};
+  background-color: ${({ theme }) => theme.colors.white};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
   display: flex;
   justify-content: center;
   align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  overflow-x: hidden;
 `;
 
 export const StyledHeaderContent = styled.div`
-  max-width: 1280px;
-  width: 100%;
+  width: 80%;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xl};
+`;
+
+export const StyledLogoWrapper = styled.div`
+  flex-shrink: 0;
+  display: flex;
   align-items: center;
 `;
 
 export const StyledLogo = styled.img`
-  height: 100px;
+  height: 80px;
   width: auto;
   object-fit: contain;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    height: 60px;
+    height: 80px;
+  }
+`;
+
+export const StyledStepInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.sm};
+  flex: 1;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    gap: ${({ theme }) => theme.spacing.xs};
+  }
+`;
+
+export const StyledStepCounter = styled.span`
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  text-align: right;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    font-size: 0.75rem;
+  }
+`;
+
+export const StyledProgressBarWrapper = styled.div`
+  width: 100%;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    min-width: 70px;
+    flex-shrink: 0;
   }
 `;

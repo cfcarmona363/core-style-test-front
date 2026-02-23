@@ -1,22 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FormInput } from "../FormInput/FormInput";
 import { FormTextarea } from "../FormTextarea/FormTextarea";
 import { Checkbox } from "../Checkbox/Checkbox";
 import { Radio } from "../Radio/Radio";
 import { Select } from "../Select/Select";
-import { Button } from "../Button/Button";
+import { Header } from "../Header/Header";
+import { Footer } from "../Footer/Footer";
 import { StepIndicator } from "../StepIndicator/StepIndicator";
 import { Snackbar } from "../Snackbar/Snackbar";
 import { findMatchingStyles } from "../../utils/findMatchingStyles";
 import { buildCoreEmailHtml_2cols } from "../../utils/emailBuilder";
 import { sendEmail } from "../../services/services";
 import {
-  StyledFormContainer,
-  StyledFormContent,
+  StyledPageWrapper,
+  StyledMiddleSection,
+  StyledMainContent,
+  StyledTitleSection,
+  StyledContentContainer,
+  StyledLeftColumn,
+  StyledRightColumn,
   StyledFormTitle,
   StyledFormDescription,
   StyledFormSection,
-  StyledButtonContainer,
   StyledCheckboxGrid,
   StyledPrivacySection,
   StyledPrivacyText,
@@ -138,6 +143,11 @@ export const StepByStepForm: React.FC = () => {
     {},
   );
 
+  // Scroll to top on step change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentStep]);
+
   const updateFormData = <K extends keyof FormData>(
     field: K,
     value: FormData[K],
@@ -214,8 +224,15 @@ export const StepByStepForm: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleStepClick = (step: number) => {
+    // Only allow navigation to completed steps or current step
+    if (step <= currentStep) {
+      setCurrentStep(step);
+    }
+  };
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!validateStep(currentStep)) return;
 
     try {
@@ -255,6 +272,12 @@ export const StepByStepForm: React.FC = () => {
           "¡Gracias por completar el test! Recibirás los resultados por email a la brevedad.",
         variant: "success",
       });
+
+      // Redirect after 2 seconds
+      setTimeout(() => {
+        window.location.href =
+          "https://www.corealternativas.com/bolsas-tote-cordoba";
+      }, 2000);
     } catch (error) {
       console.error("Error sending email:", error);
       setSnackbar({
@@ -314,7 +337,7 @@ export const StepByStepForm: React.FC = () => {
               value={formData.email}
               onChange={(e) => updateFormData("email", e.target.value)}
               required
-              helperText="We'll be sending the results to your email address :)"
+              helperText="Te enviaremos los resultados a este email :)"
               error={errors.email}
             />
           </StyledFormSection>
@@ -482,13 +505,7 @@ export const StepByStepForm: React.FC = () => {
             <StyledPrivacySection>
               <StyledPrivacyText>
                 Puedes darte de baja de estas comunicaciones en cualquier
-                momento. Para más información sobre cómo darte de baja, nuestras
-                prácticas de privacidad y nuestro compromiso con proteger y
-                respetar tu privacidad, por favor revisa nuestra{" "}
-                <a href="#" style={{ color: "#ce6b00" }}>
-                  Política de Privacidad
-                </a>
-                .
+                momento.
               </StyledPrivacyText>
             </StyledPrivacySection>
           </StyledFormSection>
@@ -500,49 +517,64 @@ export const StepByStepForm: React.FC = () => {
   };
 
   return (
-    <StyledFormContainer>
-      <StyledFormContent>
-        <StepIndicator currentStep={currentStep} steps={STEPS} />
-        <StyledFormTitle>Encuentra tu estilo personal</StyledFormTitle>
-        {currentStep === 1 && (
-          <StyledFormDescription>
-            Las siguientes preguntas están diseñadas para entender (a grandes
-            rasgos) qué tipo de estilo te gusta vestir más.
-          </StyledFormDescription>
-        )}
-        {currentStep === 1 && (
-          <StyledFormDescription>
-            Queremos alejarnos de las ideas de como "deberíamos" vernos, y hacer
-            foco en qué sería la forma más auténtica para vos de vestirte, y
-            mostrarte en el mundo &lt;3.
-          </StyledFormDescription>
-        )}
-        {currentStep === 1 && (
-          <StyledFormDescription>
-            Vas a recibir los resultados por email a la brevedad. Gracias por
-            jugar!
-          </StyledFormDescription>
-        )}
+    <>
+      <Header currentStep={currentStep} totalSteps={STEPS.length} />
 
-        <form onSubmit={handleSubmit}>{renderStep()}</form>
+      <StyledPageWrapper>
+        <StyledMiddleSection>
+          <StyledMainContent>
+            <StyledTitleSection>
+              <StyledFormTitle>Encuentra tu estilo personal</StyledFormTitle>
+              <StepIndicator
+                currentStep={currentStep}
+                steps={STEPS}
+                onStepClick={handleStepClick}
+              />
+            </StyledTitleSection>
 
-        <StyledButtonContainer>
-          {currentStep > 1 && (
-            <Button type="button" variant="outline" onClick={handlePrevious}>
-              Anterior
-            </Button>
-          )}
-          {currentStep < STEPS.length ? (
-            <Button type="button" onClick={handleNext}>
-              Siguiente
-            </Button>
-          ) : (
-            <Button type="submit" onClick={handleSubmit}>
-              Enviar
-            </Button>
-          )}
-        </StyledButtonContainer>
-      </StyledFormContent>
+            {currentStep === 1 ? (
+              <StyledContentContainer>
+                <StyledLeftColumn>
+                  <>
+                    <StyledFormDescription>
+                      Las siguientes preguntas están diseñadas para entender (a
+                      grandes rasgos) qué tipo de estilo te gusta vestir más.
+                    </StyledFormDescription>
+                    <StyledFormDescription>
+                      Queremos alejarnos de las ideas de como "deberíamos"
+                      vernos, y hacer foco en qué sería la forma más auténtica
+                      para vos de vestirte, y mostrarte en el mundo &lt;3.
+                    </StyledFormDescription>
+                    <StyledFormDescription>
+                      Vas a recibir los resultados por email a la brevedad.
+                      Gracias por jugar!
+                    </StyledFormDescription>
+                  </>
+                </StyledLeftColumn>
+
+                <StyledRightColumn onSubmit={handleSubmit}>
+                  {renderStep()}
+                </StyledRightColumn>
+              </StyledContentContainer>
+            ) : (
+              <StyledRightColumn onSubmit={handleSubmit}>
+                {renderStep()}
+              </StyledRightColumn>
+            )}
+          </StyledMainContent>
+        </StyledMiddleSection>
+
+        <Footer
+          showPrevious={currentStep > 1}
+          isLastStep={currentStep === STEPS.length}
+          onPrevious={handlePrevious}
+          onNext={handleNext}
+          onSubmit={() => {
+            void handleSubmit();
+          }}
+        />
+      </StyledPageWrapper>
+
       <Snackbar
         key={
           snackbar.open ? `${snackbar.message}-${snackbar.variant}` : "closed"
@@ -552,6 +584,6 @@ export const StepByStepForm: React.FC = () => {
         variant={snackbar.variant}
         onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
       />
-    </StyledFormContainer>
+    </>
   );
 };
