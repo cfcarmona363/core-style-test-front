@@ -133,6 +133,7 @@ async function saveToNotion(data: FormData): Promise<void> {
       Time: richText(data.tiempo),
       "Communications Accepted": { checkbox: data.comunicaciones },
       "Data Processing Accepted": { checkbox: data.procesamiento },
+      Date: { date: { start: new Date().toISOString() } },
     },
   });
 }
@@ -208,7 +209,6 @@ export default async function handler(req: any, res: any): Promise<void> {
       if (formData != null && typeof formData === "object") {
         try {
           await saveToNotion(formData);
-          console.log("[send-email] Form data saved to Notion");
         } catch (notionErr) {
           console.error(
             "[send-email] Warning: Failed to save to Notion:",
@@ -224,19 +224,6 @@ export default async function handler(req: any, res: any): Promise<void> {
       } as SendEmailSuccessResponse);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
-      console.error("[send-email] Error:", errorMessage);
-      console.error(
-        "[send-email] Stack:",
-        err instanceof Error ? err.stack : "No stack",
-      );
-      console.error(
-        "[send-email] Env check - GMAIL_USER:",
-        process.env.GMAIL_USER ? "SET" : "NOT SET",
-      );
-      console.error(
-        "[send-email] Env check - GMAIL_APP_PASSWORD:",
-        process.env.GMAIL_APP_PASSWORD ? "SET" : "NOT SET",
-      );
       sendJson(res, 500, {
         error: `Failed to send email: ${errorMessage}`,
       } as SendEmailErrorResponse);

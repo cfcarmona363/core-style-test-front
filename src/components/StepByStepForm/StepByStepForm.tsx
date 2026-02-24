@@ -125,6 +125,7 @@ export const StepByStepForm: React.FC = () => {
     message: string;
     variant: "success" | "error";
   }>({ open: false, message: "", variant: "success" });
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     nombre: "",
     apellido: "",
@@ -235,6 +236,7 @@ export const StepByStepForm: React.FC = () => {
     e?.preventDefault();
     if (!validateStep(currentStep)) return;
 
+    setLoading(true);
     try {
       // Process form data: get matching styles from selected personality traits
       const adjetivosString = formData.personalidad.join(", ");
@@ -288,6 +290,8 @@ export const StepByStepForm: React.FC = () => {
             : "Hubo un error. Intenta nuevamente.",
         variant: "error",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -572,6 +576,7 @@ export const StepByStepForm: React.FC = () => {
           onSubmit={() => {
             void handleSubmit();
           }}
+          loading={loading}
         />
       </StyledPageWrapper>
 

@@ -12,6 +12,7 @@ interface FooterProps {
   onSubmit?: () => void;
   showPrevious: boolean;
   isLastStep: boolean;
+  loading?: boolean;
 }
 
 export const Footer: React.FC<FooterProps> = ({
@@ -20,6 +21,7 @@ export const Footer: React.FC<FooterProps> = ({
   onSubmit,
   showPrevious,
   isLastStep,
+  loading = false,
 }) => {
   return (
     <StyledFooter>
@@ -31,7 +33,7 @@ export const Footer: React.FC<FooterProps> = ({
             </Button>
           )}
           {isLastStep ? (
-            <Button type="button" onClick={onSubmit}>
+            <Button type="button" onClick={onSubmit} loading={loading}>
               Enviar
             </Button>
           ) : (
