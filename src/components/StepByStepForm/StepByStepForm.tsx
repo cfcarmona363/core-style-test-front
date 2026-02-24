@@ -126,6 +126,7 @@ export const StepByStepForm: React.FC = () => {
     variant: "success" | "error";
   }>({ open: false, message: "", variant: "success" });
   const [loading, setLoading] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState(5);
   const [formData, setFormData] = useState<FormData>({
     nombre: "",
     apellido: "",
@@ -148,6 +149,20 @@ export const StepByStepForm: React.FC = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentStep]);
+
+  // Countdown timer for redirect
+  useEffect(() => {
+    if (redirectCountdown > 0 && currentStep === 8) {
+      const timer = setTimeout(
+        () => setRedirectCountdown(redirectCountdown - 1),
+        1000,
+      );
+      return () => clearTimeout(timer);
+    } else if (redirectCountdown === 0 && currentStep === 8) {
+      window.location.href =
+        "https://www.corealternativas.com/bolsas-tote-cordoba";
+    }
+  }, [redirectCountdown, currentStep]);
 
   const updateFormData = <K extends keyof FormData>(
     field: K,
@@ -268,18 +283,8 @@ export const StepByStepForm: React.FC = () => {
         throw new Error(err.message || "Error al enviar el email");
       }
 
-      setSnackbar({
-        open: true,
-        message:
-          "¡Gracias por completar el test! Recibirás los resultados por email a la brevedad.",
-        variant: "success",
-      });
-
-      // Redirect after 2 seconds
-      setTimeout(() => {
-        window.location.href =
-          "https://www.corealternativas.com/bolsas-tote-cordoba";
-      }, 2000);
+      setCurrentStep(8);
+      setRedirectCountdown(5);
     } catch (error) {
       console.error("Error sending email:", error);
       setSnackbar({
@@ -520,9 +525,26 @@ export const StepByStepForm: React.FC = () => {
     }
   };
 
+  const renderSuccessStep = () => {
+    return (
+      <StyledFormSection>
+        <StyledFormDescription>
+          ¡Gracias por completar el test! Recibirás los resultados por email a
+          la brevedad.
+        </StyledFormDescription>
+        <StyledFormDescription>
+          Volverás a CORE en {redirectCountdown} segundos.
+        </StyledFormDescription>
+      </StyledFormSection>
+    );
+  };
+
   return (
     <>
-      <Header currentStep={currentStep} totalSteps={STEPS.length} />
+      <Header
+        currentStep={currentStep === 8 ? STEPS.length : currentStep}
+        totalSteps={STEPS.length}
+      />
 
       <StyledPageWrapper>
         <StyledMiddleSection>
@@ -560,6 +582,8 @@ export const StepByStepForm: React.FC = () => {
                   {renderStep()}
                 </StyledRightColumn>
               </StyledContentContainer>
+            ) : currentStep === 8 ? (
+              <StyledRightColumn>{renderSuccessStep()}</StyledRightColumn>
             ) : (
               <StyledRightColumn onSubmit={handleSubmit}>
                 {renderStep()}
@@ -568,16 +592,18 @@ export const StepByStepForm: React.FC = () => {
           </StyledMainContent>
         </StyledMiddleSection>
 
-        <Footer
-          showPrevious={currentStep > 1}
-          isLastStep={currentStep === STEPS.length}
-          onPrevious={handlePrevious}
-          onNext={handleNext}
-          onSubmit={() => {
-            void handleSubmit();
-          }}
-          loading={loading}
-        />
+        {currentStep !== 8 && (
+          <Footer
+            showPrevious={currentStep > 1}
+            isLastStep={currentStep === STEPS.length}
+            onPrevious={handlePrevious}
+            onNext={handleNext}
+            onSubmit={() => {
+              void handleSubmit();
+            }}
+            loading={loading}
+          />
+        )}
       </StyledPageWrapper>
 
       <Snackbar

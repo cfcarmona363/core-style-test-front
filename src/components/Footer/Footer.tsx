@@ -37,7 +37,7 @@ export const Footer: React.FC<FooterProps> = ({
               Enviar
             </Button>
           ) : (
-            <Button type="button" onClick={onNext}>
+            <Button type="button" onClick={onNext} loading={loading}>
               Siguiente
             </Button>
           )}
