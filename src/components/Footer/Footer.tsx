@@ -4,7 +4,16 @@ import {
   StyledFooter,
   StyledFooterContent,
   StyledButtonGroup,
+  StyledAlert,
+  StyledAlertText,
+  StyledAlertActions,
 } from "./Footer.style";
+
+interface FooterAlert {
+  message: string;
+  actionLabel: string;
+  onAction: () => void;
+}
 
 interface FooterProps {
   onPrevious: () => void;
@@ -13,6 +22,7 @@ interface FooterProps {
   showPrevious: boolean;
   isLastStep: boolean;
   loading?: boolean;
+  alert?: FooterAlert;
 }
 
 export const Footer: React.FC<FooterProps> = ({
@@ -22,10 +32,25 @@ export const Footer: React.FC<FooterProps> = ({
   showPrevious,
   isLastStep,
   loading = false,
+  alert,
 }) => {
   return (
     <StyledFooter>
       <StyledFooterContent>
+        {alert && (
+          <StyledAlert role="alert">
+            <StyledAlertText>{alert.message}</StyledAlertText>
+            <StyledAlertActions>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={alert.onAction}
+              >
+                {alert.actionLabel}
+              </Button>
+            </StyledAlertActions>
+          </StyledAlert>
+        )}
         <StyledButtonGroup>
           {showPrevious && (
             <Button type="button" variant="outline" onClick={onPrevious}>

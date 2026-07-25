@@ -2,15 +2,20 @@ import React, { useState, useEffect } from "react";
 import { FormInput } from "../FormInput/FormInput";
 import { FormTextarea } from "../FormTextarea/FormTextarea";
 import { Checkbox } from "../Checkbox/Checkbox";
-import { Radio } from "../Radio/Radio";
+import { Accordion } from "../Accordion/Accordion";
+import { Chip, StyledChipGroup } from "../Chip";
 import { Select } from "../Select/Select";
 import { Header } from "../Header/Header";
 import { Footer } from "../Footer/Footer";
 import { StepIndicator } from "../StepIndicator/StepIndicator";
 import { Snackbar } from "../Snackbar/Snackbar";
 import { findMatchingStyles } from "../../utils/findMatchingStyles";
-import { buildCoreEmailHtml_2cols } from "../../utils/emailBuilder";
+import {
+  buildCoreEmailHtml_2cols,
+  buildCoreEmailHtml_suggestion,
+} from "../../utils/emailBuilder";
 import { sendEmail } from "../../services/services";
+import { Button } from "../Button/Button";
 import {
   StyledPageWrapper,
   StyledMiddleSection,
@@ -22,75 +27,101 @@ import {
   StyledFormTitle,
   StyledFormDescription,
   StyledFormSection,
-  StyledCheckboxGrid,
+  StyledAccordionList,
   StyledPrivacySection,
   StyledPrivacyText,
+  StyledModalOverlay,
+  StyledModalCard,
+  StyledModalTitle,
+  StyledModalActions,
 } from "./StepByStepForm.style.ts";
 
 interface FormData {
-  // Step 1
+  caracteristicas: string;
+  personalidad: string[];
+  tiempo: string;
+  genero: string;
+  ubicacion: string;
   nombre: string;
   apellido: string;
   email: string;
-  caracteristicas: string;
-
-  // Step 2
-  personalidad: string[];
-
-  // Step 3
-  ajuste: string;
-
-  // Step 4
-  tiempo: string;
-
-  // Step 5
-  genero: string;
-
-  // Step 6
-  ubicacion: string;
-
-  // Step 7
   comunicaciones: boolean;
   procesamiento: boolean;
+  sugerencia: string;
 }
 
-const PERSONALITY_OPTIONS = [
-  "Académica/o/e",
-  "Activa/o/e",
-  "Aventurera/o/e",
-  "Casual",
-  "Elegante",
-  "Exploradora/o/e",
-  "Bohemia/o/e",
-  "Formal",
-  "Hippie",
-  "Informal",
-  "Innovadora/o/e",
-  "Intensa/o/e",
-  "Intrigante",
-  "Moderna/o/e",
-  "Mística/o/e",
-  "Natural",
-  "Prolija/o/e",
-  "Nostálgica/o/e",
-  "Original",
-  "Pin-up (50s)",
-  "Rebelde",
-  "Refinada/o/e",
-  "Relajada/o/e",
-  "Retro",
-  "Romántica/o/e",
-  "Sensual",
-  "Simple",
-  "Sofisticada/o/e",
-  "Deportiva/o/e",
-  "Subversiva/o/e",
-  "Dulce",
-  "Atemporal",
-  "Tradicional",
-  "Única/o/e",
-  "Vintage",
-];
+const ALL_OTRO_ALERT_MESSAGE =
+  "Para armar tu resultado necesitamos que elijas al menos una palabra con la que te identifiques.\n\nSi ninguna te representó, contanos por qué. Nos ayuda un montón a seguir mejorando este test para que refleje mejor a quienes lo hacen.";
+
+const MAX_PER_GROUP = 2;
+
+const otroValue = (label: string) => `Otro (${label})`;
+const isOtroValue = (value: string) => value.startsWith("Otro (");
+
+const ADJETIVO_GROUPS = [
+  {
+    id: "actitud",
+    label: "Actitud",
+    options: [
+      "Rebelde",
+      "Elegante",
+      "Formal",
+      "Aventurera/o/e",
+      "Original",
+      "Única/o/e",
+      otroValue("Actitud"),
+    ],
+  },
+  {
+    id: "vida-diaria",
+    label: "Vida diaria",
+    options: [
+      "Casual",
+      "Relajada/o/e",
+      "Activa/o/e",
+      "Deportiva/o/e",
+      "Simple",
+      "Prolija/o/e",
+      otroValue("Vida diaria"),
+    ],
+  },
+  {
+    id: "epoca",
+    label: "Época e inspiración",
+    options: [
+      "Vintage",
+      "Retro",
+      "Moderna/o/e",
+      "Atemporal",
+      "Innovadora/o/e",
+      otroValue("Época e inspiración"),
+    ],
+  },
+  {
+    id: "emocion",
+    label: "Emoción y energía",
+    options: [
+      "Dulce",
+      "Intensa/o/e",
+      "Romántica/o/e",
+      "Sensual",
+      "Subversiva/o/e",
+      otroValue("Emoción y energía"),
+    ],
+  },
+  {
+    id: "espiritu",
+    label: "Espíritu",
+    options: [
+      "Natural",
+      "Bohemia/o/e",
+      "Hippie",
+      "Exploradora/o/e",
+      "Mística/o/e",
+      otroValue("Espíritu"),
+    ],
+  },
+] as const;
 
 const TIME_OPTIONS = [
   { value: "5min", label: "5 minutos" },
@@ -109,17 +140,20 @@ const GENDER_OPTIONS = [
 ];
 
 const STEPS = [
-  "Información Personal",
   "Características",
-  "Preferencias",
+  "Adjetivos",
   "Tiempo",
-  "Perfil",
-  "Ubicación",
-  "Privacidad",
+  "Perfil y Ubicación",
+  "Contacto y Privacidad",
 ];
+
+const SUCCESS_STEP = STEPS.length + 1;
 
 export const StepByStepForm: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [openGroupId, setOpenGroupId] = useState<string | null>(
+    ADJETIVO_GROUPS[0].id,
+  );
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -127,18 +161,21 @@ export const StepByStepForm: React.FC = () => {
   }>({ open: false, message: "", variant: "success" });
   const [loading, setLoading] = useState(false);
   const [redirectCountdown, setRedirectCountdown] = useState(5);
+  const [showAllOtroAlert, setShowAllOtroAlert] = useState(false);
+  const [showSuggestionModal, setShowSuggestionModal] = useState(false);
+  const [suggestionDraft, setSuggestionDraft] = useState("");
   const [formData, setFormData] = useState<FormData>({
-    nombre: "",
-    apellido: "",
-    email: "",
     caracteristicas: "",
     personalidad: [],
-    ajuste: "",
     tiempo: "",
     genero: "",
     ubicacion: "",
+    nombre: "",
+    apellido: "",
+    email: "",
     comunicaciones: false,
     procesamiento: false,
+    sugerencia: "",
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>(
@@ -152,15 +189,15 @@ export const StepByStepForm: React.FC = () => {
 
   // Countdown timer for redirect
   useEffect(() => {
-    if (redirectCountdown > 0 && currentStep === 8) {
+    if (redirectCountdown > 0 && currentStep === SUCCESS_STEP) {
       const timer = setTimeout(
         () => setRedirectCountdown(redirectCountdown - 1),
         1000,
       );
       return () => clearTimeout(timer);
-    } else if (redirectCountdown === 0 && currentStep === 8) {
+    } else if (redirectCountdown === 0 && currentStep === SUCCESS_STEP) {
       window.location.href =
-        "https://www.corealternativas.com/bolsas-tote-cordoba";
+        "https://www.corealternativas.com/estilismo-personalizado";
     }
   }, [redirectCountdown, currentStep]);
 
@@ -179,43 +216,37 @@ export const StepByStepForm: React.FC = () => {
     const newErrors: Partial<Record<keyof FormData, string>> = {};
 
     switch (step) {
-      case 1:
-        if (!formData.nombre.trim())
-          newErrors.nombre = "El nombre es requerido";
-        if (!formData.apellido.trim())
-          newErrors.apellido = "El apellido es requerido";
+      case 1: {
+        if (!formData.caracteristicas.trim()) {
+          newErrors.caracteristicas = "Las características son requeridas";
+        }
+        break;
+      }
+      case 2: {
+        const missingGroups = ADJETIVO_GROUPS.filter(
+          (g) => countInGroup(g.id, formData.personalidad) === 0,
+        );
+        if (missingGroups.length > 0) {
+          newErrors.personalidad = `Elegí al menos 1 en cada categoría (te falta: ${missingGroups
+            .map((g) => g.label)
+            .join(", ")})`;
+        }
+        break;
+      }
+      case 3:
+        if (!formData.tiempo) newErrors.tiempo = "Debes seleccionar una opción";
+        break;
+      case 4:
+        // Género es opcional
+        if (!formData.ubicacion.trim())
+          newErrors.ubicacion = "La ubicación es requerida";
+        break;
+      case 5:
         if (!formData.email.trim()) {
           newErrors.email = "El email es requerido";
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
           newErrors.email = "El email no es válido";
         }
-        break;
-      case 2:
-        if (!formData.caracteristicas.trim()) {
-          newErrors.caracteristicas = "Las características son requeridas";
-        }
-        if (formData.personalidad.length < 5) {
-          newErrors.personalidad =
-            "Debes seleccionar al menos 5 características";
-        } else if (formData.personalidad.length > 10) {
-          newErrors.personalidad =
-            "Debes seleccionar máximo 10 características";
-        }
-        break;
-      case 3:
-        if (!formData.ajuste) newErrors.ajuste = "Debes seleccionar una opción";
-        break;
-      case 4:
-        if (!formData.tiempo) newErrors.tiempo = "Debes seleccionar una opción";
-        break;
-      case 5:
-        // Gender is optional
-        break;
-      case 6:
-        if (!formData.ubicacion.trim())
-          newErrors.ubicacion = "La ubicación es requerida";
-        break;
-      case 7:
         if (!formData.procesamiento) {
           newErrors.procesamiento = "Debes aceptar el procesamiento de datos";
         }
@@ -226,11 +257,22 @@ export const StepByStepForm: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const allSelectionsAreOtro = (selected: string[]) =>
+    selected.length > 0 && selected.every(isOtroValue);
+
   const handleNext = () => {
-    if (validateStep(currentStep)) {
-      if (currentStep < STEPS.length) {
-        setCurrentStep(currentStep + 1);
-      }
+    if (!validateStep(currentStep)) return;
+
+    if (
+      currentStep === 2 &&
+      allSelectionsAreOtro(formData.personalidad)
+    ) {
+      setShowAllOtroAlert(true);
+      return;
+    }
+
+    if (currentStep < STEPS.length) {
+      setCurrentStep(currentStep + 1);
     }
   };
 
@@ -253,24 +295,27 @@ export const StepByStepForm: React.FC = () => {
 
     setLoading(true);
     try {
-      // Process form data: get matching styles from selected personality traits
-      const adjetivosString = formData.personalidad.join(", ");
-      const matchingStyles = findMatchingStyles(adjetivosString);
+      const hasSuggestion = !!formData.sugerencia.trim();
 
-      // Generate HTML email from utils
-      const html = buildCoreEmailHtml_2cols(
-        formData.nombre,
-        matchingStyles,
-        formData.caracteristicas,
-        {
-          ctaUrl: "https://www.corealternativas.com/estilismo-personalizado",
-          ctaLabel: "Reservar asesoría",
-        },
-      );
+      const html = hasSuggestion
+        ? buildCoreEmailHtml_suggestion(formData.nombre)
+        : buildCoreEmailHtml_2cols(
+            formData.nombre,
+            findMatchingStyles(formData.personalidad.join(", ")),
+            formData.caracteristicas,
+            {
+              ctaUrl: "https://www.corealternativas.com/estilismo-personalizado",
+              ctaLabel: "Reservar asesoría",
+            },
+          );
+
+      const subject = hasSuggestion
+        ? "Gracias por tu sugerencia"
+        : "Test de personalidad";
 
       const body = {
         to: formData.email,
-        subject: "Test de personalidad",
+        subject,
         html,
         replyTo: "core.alternativas@gmail.com",
         formData,
@@ -283,7 +328,7 @@ export const StepByStepForm: React.FC = () => {
         throw new Error(err.message || "Error al enviar el email");
       }
 
-      setCurrentStep(8);
+      setCurrentStep(SUCCESS_STEP);
       setRedirectCountdown(5);
     } catch (error) {
       console.error("Error sending email:", error);
@@ -300,59 +345,79 @@ export const StepByStepForm: React.FC = () => {
     }
   };
 
-  const handlePersonalityToggle = (option: string) => {
+  const countInGroup = (groupId: string, selected: string[]): number => {
+    const group = ADJETIVO_GROUPS.find((g) => g.id === groupId);
+    if (!group) return 0;
+    return selected.filter((s) => (group.options as readonly string[]).includes(s))
+      .length;
+  };
+
+  const findNextIncompleteGroup = (
+    afterGroupId: string,
+    selected: string[],
+  ): string | null => {
+    const startIdx = ADJETIVO_GROUPS.findIndex((g) => g.id === afterGroupId);
+    for (let i = 1; i <= ADJETIVO_GROUPS.length; i++) {
+      const idx = (startIdx + i) % ADJETIVO_GROUPS.length;
+      const g = ADJETIVO_GROUPS[idx];
+      if (countInGroup(g.id, selected) === 0) return g.id;
+    }
+    return null;
+  };
+
+  const handlePersonalityToggle = (option: string, groupId: string) => {
     setFormData((prev) => {
       const current = prev.personalidad;
       const isSelected = current.includes(option);
-      let newSelection: string[];
 
       if (isSelected) {
-        newSelection = current.filter((item) => item !== option);
-      } else {
-        if (current.length >= 10) {
-          return prev; // Don't add if already at max
-        }
-        newSelection = [...current, option];
+        return {
+          ...prev,
+          personalidad: current.filter((item) => item !== option),
+        };
+      }
+
+      if (countInGroup(groupId, current) >= MAX_PER_GROUP) {
+        return prev;
+      }
+
+      const newSelection = [...current, option];
+
+      const reachedMax =
+        countInGroup(groupId, newSelection) === MAX_PER_GROUP;
+      if (reachedMax) {
+        const nextId = findNextIncompleteGroup(groupId, newSelection);
+        setOpenGroupId(nextId);
       }
 
       return { ...prev, personalidad: newSelection };
     });
+
+    if (errors.personalidad) {
+      setErrors((prev) => ({ ...prev, personalidad: undefined }));
+    }
+    if (showAllOtroAlert) {
+      setShowAllOtroAlert(false);
+    }
+  };
+
+  const handleOpenSuggestionModal = () => {
+    setSuggestionDraft(formData.sugerencia);
+    setShowSuggestionModal(true);
+  };
+
+  const handleSubmitSuggestion = () => {
+    const trimmed = suggestionDraft.trim();
+    if (!trimmed) return;
+    setFormData((prev) => ({ ...prev, sugerencia: trimmed }));
+    setShowSuggestionModal(false);
+    setShowAllOtroAlert(false);
+    setCurrentStep(STEPS.length);
   };
 
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return (
-          <StyledFormSection>
-            <FormInput
-              label="Nombre"
-              type="text"
-              value={formData.nombre}
-              onChange={(e) => updateFormData("nombre", e.target.value)}
-              required
-              error={errors.nombre}
-            />
-            <FormInput
-              label="Apellido"
-              type="text"
-              value={formData.apellido}
-              onChange={(e) => updateFormData("apellido", e.target.value)}
-              required
-              error={errors.apellido}
-            />
-            <FormInput
-              label="Email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => updateFormData("email", e.target.value)}
-              required
-              helperText="Te enviaremos los resultados a este email :)"
-              error={errors.email}
-            />
-          </StyledFormSection>
-        );
-
-      case 2:
         return (
           <StyledFormSection>
             <FormTextarea
@@ -366,59 +431,66 @@ export const StepByStepForm: React.FC = () => {
               error={errors.caracteristicas}
               rows={4}
             />
+          </StyledFormSection>
+        );
+
+      case 2:
+        return (
+          <StyledFormSection>
             <StyledFormDescription>
-              Bien, ahora seleccioná las palabras que más se acerquen a las
-              características que identificaste.
-            </StyledFormDescription>
-            <StyledFormDescription>
-              Elige entre 5 y 10 ({formData.personalidad.length} seleccionadas)
+              Seleccioná adjetivos que te representen. Elegí 1 o 2 en cada
+              categoría ({formData.personalidad.length} seleccionadas).
             </StyledFormDescription>
             {errors.personalidad && (
               <StyledFormDescription style={{ color: "#d32f2f" }}>
                 {errors.personalidad}
               </StyledFormDescription>
             )}
-            <StyledCheckboxGrid>
-              {PERSONALITY_OPTIONS.map((option) => (
-                <Checkbox
-                  key={option}
-                  label={option}
-                  checked={formData.personalidad.includes(option)}
-                  onChange={() => handlePersonalityToggle(option)}
-                />
-              ))}
-            </StyledCheckboxGrid>
+            <StyledAccordionList>
+              {ADJETIVO_GROUPS.map((group) => {
+                const selectedCount = countInGroup(
+                  group.id,
+                  formData.personalidad,
+                );
+                const isOpen = openGroupId === group.id;
+                const hasError = !!errors.personalidad && selectedCount === 0;
+                return (
+                  <Accordion
+                    key={group.id}
+                    title={group.label}
+                    isOpen={isOpen}
+                    onToggle={() =>
+                      setOpenGroupId(isOpen ? null : group.id)
+                    }
+                    selectedCount={selectedCount}
+                    error={hasError}
+                  >
+                    <StyledChipGroup>
+                      {group.options.map((option) => {
+                        const selected = formData.personalidad.includes(option);
+                        const groupAtMax = selectedCount >= MAX_PER_GROUP;
+                        const displayLabel = isOtroValue(option) ? "Otro" : option;
+                        return (
+                          <Chip
+                            key={option}
+                            label={displayLabel}
+                            selected={selected}
+                            disabled={!selected && groupAtMax}
+                            onClick={() =>
+                              handlePersonalityToggle(option, group.id)
+                            }
+                          />
+                        );
+                      })}
+                    </StyledChipGroup>
+                  </Accordion>
+                );
+              })}
+            </StyledAccordionList>
           </StyledFormSection>
         );
 
       case 3:
-        return (
-          <StyledFormSection>
-            <StyledFormDescription>
-              La ropa, en general, ¿la preferís más ajustada/ceñida al cuerpo, o
-              más suelta?
-            </StyledFormDescription>
-            {errors.ajuste && (
-              <StyledFormDescription style={{ color: "#d32f2f" }}>
-                {errors.ajuste}
-              </StyledFormDescription>
-            )}
-            <Radio
-              name="ajuste"
-              label="Más bien ajustada"
-              checked={formData.ajuste === "ajustada"}
-              onChange={() => updateFormData("ajuste", "ajustada")}
-            />
-            <Radio
-              name="ajuste"
-              label="Más bien suelta"
-              checked={formData.ajuste === "suelta"}
-              onChange={() => updateFormData("ajuste", "suelta")}
-            />
-          </StyledFormSection>
-        );
-
-      case 4:
         return (
           <StyledFormSection>
             <Select
@@ -432,7 +504,7 @@ export const StepByStepForm: React.FC = () => {
           </StyledFormSection>
         );
 
-      case 5:
+      case 4:
         return (
           <StyledFormSection>
             <Select
@@ -442,12 +514,6 @@ export const StepByStepForm: React.FC = () => {
               onChange={(e) => updateFormData("genero", e.target.value)}
               helperText="En CORE, creemos que el estilo y la ropa van más allá del género, y alentamos a todos a expresarse de manera auténtica. Esta pregunta es opcional y no influirá en tus resultados de estilo, pero nos ayuda a comprender mejor tu perfil (y a nuestra audiencia)."
             />
-          </StyledFormSection>
-        );
-
-      case 6:
-        return (
-          <StyledFormSection>
             <FormInput
               label="¿Dónde estás ubicada/o/e?"
               type="text"
@@ -461,9 +527,33 @@ export const StepByStepForm: React.FC = () => {
           </StyledFormSection>
         );
 
-      case 7:
+      case 5:
         return (
           <StyledFormSection>
+            <FormInput
+              label="Nombre"
+              type="text"
+              value={formData.nombre}
+              onChange={(e) => updateFormData("nombre", e.target.value)}
+              error={errors.nombre}
+            />
+            <FormInput
+              label="Apellido"
+              type="text"
+              value={formData.apellido}
+              onChange={(e) => updateFormData("apellido", e.target.value)}
+              error={errors.apellido}
+            />
+            <FormInput
+              label="Email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => updateFormData("email", e.target.value)}
+              required
+              helperText="Te enviaremos los resultados a este email :)"
+              error={errors.email}
+            />
+
             <StyledPrivacySection>
               <StyledPrivacyText>
                 En CORE Alternativas Conscientes, nos tomamos muy en serio la
@@ -542,7 +632,7 @@ export const StepByStepForm: React.FC = () => {
   return (
     <>
       <Header
-        currentStep={currentStep === 8 ? STEPS.length : currentStep}
+        currentStep={currentStep === SUCCESS_STEP ? STEPS.length : currentStep}
         totalSteps={STEPS.length}
       />
 
@@ -582,7 +672,7 @@ export const StepByStepForm: React.FC = () => {
                   {renderStep()}
                 </StyledRightColumn>
               </StyledContentContainer>
-            ) : currentStep === 8 ? (
+            ) : currentStep === SUCCESS_STEP ? (
               <StyledRightColumn>{renderSuccessStep()}</StyledRightColumn>
             ) : (
               <StyledRightColumn onSubmit={handleSubmit}>
@@ -592,7 +682,7 @@ export const StepByStepForm: React.FC = () => {
           </StyledMainContent>
         </StyledMiddleSection>
 
-        {currentStep !== 8 && (
+        {currentStep !== SUCCESS_STEP && (
           <Footer
             showPrevious={currentStep > 1}
             isLastStep={currentStep === STEPS.length}
@@ -602,7 +692,51 @@ export const StepByStepForm: React.FC = () => {
               void handleSubmit();
             }}
             loading={loading}
+            alert={
+              showAllOtroAlert && currentStep === 2
+                ? {
+                    message: ALL_OTRO_ALERT_MESSAGE,
+                    actionLabel: "Enviar sugerencia",
+                    onAction: handleOpenSuggestionModal,
+                  }
+                : undefined
+            }
           />
+        )}
+
+        {showSuggestionModal && (
+          <StyledModalOverlay
+            role="dialog"
+            aria-modal="true"
+            onClick={() => setShowSuggestionModal(false)}
+          >
+            <StyledModalCard onClick={(e) => e.stopPropagation()}>
+              <StyledModalTitle>Contanos tu sugerencia</StyledModalTitle>
+              <FormTextarea
+                label="¿Qué adjetivos te faltaron o qué te habría gustado encontrar?"
+                value={suggestionDraft}
+                onChange={(e) => setSuggestionDraft(e.target.value)}
+                rows={5}
+                required
+              />
+              <StyledModalActions>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowSuggestionModal(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleSubmitSuggestion}
+                  disabled={!suggestionDraft.trim()}
+                >
+                  Enviar
+                </Button>
+              </StyledModalActions>
+            </StyledModalCard>
+          </StyledModalOverlay>
         )}
       </StyledPageWrapper>
 

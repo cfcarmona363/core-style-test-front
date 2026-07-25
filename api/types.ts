@@ -11,12 +11,12 @@ export interface FormData {
   email: string;
   caracteristicas: string;
   personalidad: string[];
-  ajuste: string;
   tiempo: string;
   genero: string;
   ubicacion: string;
   comunicaciones: boolean;
   procesamiento: boolean;
+  sugerencia?: string;
 }
 
 export interface SendEmailBody {
@@ -50,7 +50,6 @@ export interface SaveToSheetBody {
   email?: string | null;
   caracteristicas?: string | null;
   personalidad?: string[] | null;
-  ajuste?: string | null;
   tiempo?: string | null;
   genero?: string | null;
   ubicacion?: string | null;

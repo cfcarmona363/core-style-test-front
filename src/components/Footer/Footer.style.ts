@@ -27,13 +27,47 @@ export const StyledFooterContent = styled.div`
   max-width: 1100px;
   width: 100%;
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.md};
+  align-items: stretch;
+`;
+
+export const StyledAlert = styled.div`
+  background-color: #fff4e6;
+  border: 1px solid #f0b46b;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  padding: ${({ theme }) => theme.spacing.md};
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+`;
+
+export const StyledAlertText = styled.p`
+  margin: 0;
+  color: ${({ theme }) => theme.colors.text};
+  font-size: 0.9rem;
+  line-height: 1.5;
+  white-space: pre-line;
+  flex: 1;
+`;
+
+export const StyledAlertActions = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.sm};
+  flex-shrink: 0;
 `;
 
 export const StyledButtonGroup = styled.div`
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: ${({ theme }) => theme.spacing.md};
+  align-self: stretch;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     width: 100%;

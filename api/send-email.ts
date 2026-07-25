@@ -60,19 +60,6 @@ const GENDER_OPTIONS = [
   "prefiero-no-decir",
 ] as const;
 
-/** Fit options in Notion (select). Form "ajuste" is mapped to these. */
-const FIT_MAP: Record<string, string> = {
-  suelta: "Más bien suelta",
-  "mas bien suelta": "Más bien suelta",
-  ajustada: "Más bien ajustada",
-  "mas bien ajustada": "Más bien ajustada",
-};
-
-function toFitSelect(ajuste: string): string {
-  const key = ajuste.trim().toLowerCase();
-  return FIT_MAP[key] ?? "Más bien suelta";
-}
-
 /**
  * Maps a string value to Notion rich_text property.
  */
@@ -121,9 +108,6 @@ async function saveToNotion(data: FormData): Promise<void> {
         select: { name: genderSelect },
       },
       Location: richText(data.ubicacion),
-      Fit: {
-        select: { name: toFitSelect(data.ajuste) },
-      },
       Personality: {
         multi_select: data.personalidad
           .filter(Boolean)
@@ -133,6 +117,7 @@ async function saveToNotion(data: FormData): Promise<void> {
       Time: richText(data.tiempo),
       "Communications Accepted": { checkbox: data.comunicaciones },
       "Data Processing Accepted": { checkbox: data.procesamiento },
+      Sugerencia: richText(data.sugerencia ?? ""),
       Date: { date: { start: new Date().toISOString() } },
     },
   });

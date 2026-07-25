@@ -1,15 +1,16 @@
 // Style data mappings
+// URLs use linkly.link trackers to measure clicks per archetype.
 export const estilos = {
-  rockAndRoll: "https://www.corealternativas.com/estilo-rock-and-roll",
-  basicoMinimalista: "https://www.corealternativas.com/estilo-basico-minimalista",
-  romanticoFemme: "https://www.corealternativas.com/estilo-romantico-femme",
-  bohemioOrganico: "https://www.corealternativas.com/estilo-bohemio-organico",
-  clasicoElegante: "https://www.corealternativas.com/estilo-clasico-elegante",
-  deportivoUrbano: "https://www.corealternativas.com/estilo-deportivo-urbano",
-  vintageRetro: "https://www.corealternativas.com/estilo-vintage-retro",
-  gotico: "https://www.corealternativas.com/estilo-gotico-dramatico",
-  aventurerx: "https://www.corealternativas.com/estilo-aventurerx",
-  eclecticoArtistico: "https://www.corealternativas.com/estilo-maximalista-eclectico",
+  rockAndRoll: "https://linkly.link/2nCuP",
+  basicoMinimalista: "https://linkly.link/2nCuQ",
+  romanticoFemme: "https://linkly.link/2nCuR",
+  bohemioOrganico: "https://linkly.link/2nCuS",
+  clasicoElegante: "https://linkly.link/2nG0F",
+  deportivoUrbano: "https://linkly.link/2nCuU",
+  vintageRetro: "https://linkly.link/2nCuV",
+  gotico: "https://linkly.link/2nCuW",
+  aventurerx: "https://linkly.link/2nCuX",
+  eclecticoArtistico: "https://linkly.link/2nCuY",
 };
 
 export const imgUrls = {
@@ -40,12 +41,13 @@ export const estilosAdjetivos = {
     "Formal",
     "Conservadora/o/e",
     "Académica/o/e",
+    "Prolija/o/e",
   ],
-  deportivoUrbano: ["Deportiva/o/e", "Cómoda/o/e", "Informal", "Activa/o/e", "Moderna/o/e"],
+  deportivoUrbano: ["Deportiva/o/e", "Cómoda/o/e", "Informal", "Activa/o/e", "Moderna/o/e", "Casual"],
   vintageRetro: ["Nostálgica/o/e", "Retro", "Vintage", "Pin-up (50s)"],
   gotico: ["Oscura/o/e", "Dramática/o/e", "Mística/o/e", "Subversiva/o/e", "Intrigante"],
   aventurerx: ["Exploradora/o/e", "Natural", "Aventurera/o/e"],
-  eclecticoArtistico: ["Creativa/o/e", "Diversa/o/e", "Original", "Personalizada/o/e", "Innovadora/o/e"],
+  eclecticoArtistico: ["Creativa/o/e", "Diversa/o/e", "Original", "Personalizada/o/e", "Innovadora/o/e", "Única/o/e"],
 };
 
 export const arquetipos = {

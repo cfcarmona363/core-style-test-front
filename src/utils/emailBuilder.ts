@@ -90,6 +90,10 @@ export function buildCoreEmailHtml_2cols(
       ? twoColumnGridHTML(matchingStyles, arquetipos, estilos, imgUrls, brandText)
       : '<p style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#6b7280;">No se encontraron arquetipos para mostrar.</p>';
 
+  const greeting = name && name.trim()
+    ? `Hola ${esc(name)}!`
+    : "¡Hola!";
+
   return `<!doctype html>
 <html lang="es"><head>
 <meta http-equiv="x-ua-compatible" content="ie=edge">
@@ -111,7 +115,7 @@ export function buildCoreEmailHtml_2cols(
   <!-- intro -->
   <tr>
     <td style="padding:16px 24px 0 24px;font-family:Arial, Helvetica, sans-serif;">
-      <p style="margin:0 0 12px 0;font-size:16px;line-height:1.6;color:#111827;">Hola ${esc(name)}!</p>
+      <p style="margin:0 0 12px 0;font-size:16px;line-height:1.6;color:#111827;">${greeting}</p>
       <p style="margin:0 0 8px 0;font-size:15px;line-height:1.6;color:#111827;">Gracias por hacer el test de estilo personal ✨</p>
       <p style="margin:0 0 8px 0;font-size:15px;line-height:1.6;color:#111827;">
         <strong>Recordá:</strong> tu estilo no es fijo, evoluciona con vos. Somos personas multidimensionales y
@@ -182,6 +186,60 @@ export function buildCoreEmailHtml_2cols(
   </tr>
 
   <!-- pie -->
+  <tr>
+    <td style="padding:16px 24px 24px 24px;border-top:1px solid #eee;">
+      <p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:12px;line-height:1.5;color:#6b7280;">
+        Recibís este correo porque completaste el test de estilos de CORE Alternativas.
+      </p>
+    </td>
+  </tr>
+</table>
+</center>
+</body></html>`;
+}
+
+export function buildCoreEmailHtml_suggestion(
+  name: string,
+  opts?: EmailOptions
+): string {
+  const {
+    logoUrl = "https://images.squarespace-cdn.com/content/v1/6446be01262fb84cd63a5732/2fe1ed1b-7026-40c5-b12f-f332de4b6bae/logo+vertical-09.png?format=1500w",
+    brandText = "#122B26",
+    mutedBg = "#F3F5F3",
+    senderName = "Equipo CORE Alternativas",
+  } = opts || {};
+
+  const greeting = name && name.trim() ? `Hola ${esc(name)}!` : "¡Hola!";
+
+  return `<!doctype html>
+<html lang="es"><head>
+<meta http-equiv="x-ua-compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><title>Gracias por tu sugerencia</title>
+</head>
+<body style="margin:0;padding:0;background:${mutedBg};">
+<center style="width:100%;background:${mutedBg};">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" width="100%"
+       style="max-width:720px;background:#ffffff;margin:0 auto;">
+  <tr>
+    <td style="padding:24px 24px 0 24px;text-align:left;">
+      <img src="${esc(logoUrl)}" alt="CORE Alternativas Conscientes" width="120"
+           style="display:block;border:0;outline:none;text-decoration:none;">
+    </td>
+  </tr>
+
+  <tr>
+    <td style="padding:16px 24px 24px 24px;font-family:Arial, Helvetica, sans-serif;">
+      <p style="margin:0 0 12px 0;font-size:16px;line-height:1.6;color:${brandText};">${greeting}</p>
+      <p style="margin:0 0 12px 0;font-size:15px;line-height:1.6;color:#111827;">
+        Gracias por tus sugerencias. Te invitamos a volver a intentar el test más adelante.
+      </p>
+      <p style="margin:16px 0 0 0;font-size:15px;line-height:1.6;color:#111827;">
+        Un abrazo,<br><strong>${esc(senderName)}</strong>
+      </p>
+    </td>
+  </tr>
+
   <tr>
     <td style="padding:16px 24px 24px 24px;border-top:1px solid #eee;">
       <p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:12px;line-height:1.5;color:#6b7280;">

@@ -62,23 +62,22 @@ export const StyledTitleSection = styled.div`
 `;
 
 export const StyledContentContainer = styled.div`
-  display: grid;
-  grid-template-columns: 35% 1fr;
-  gap: ${({ theme }) => theme.spacing.xl};
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    grid-template-columns: 1fr;
-    gap: ${({ theme }) => theme.spacing.lg};
-  }
-`;
-
-export const StyledLeftColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.lg};
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     gap: ${({ theme }) => theme.spacing.md};
+  }
+`;
+
+export const StyledLeftColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.sm};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    gap: ${({ theme }) => theme.spacing.xs};
   }
 `;
 
@@ -162,6 +161,57 @@ export const StyledCheckboxGrid = styled.div`
     grid-template-columns: 1fr;
     gap: ${({ theme }) => theme.spacing.xs};
   }
+`;
+
+export const StyledModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: ${({ theme }) => theme.spacing.md};
+`;
+
+export const StyledModalCard = styled.div`
+  background: ${({ theme }) => theme.colors.white};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  padding: ${({ theme }) => theme.spacing.lg};
+  max-width: 520px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.md};
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+`;
+
+export const StyledModalTitle = styled.h3`
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+export const StyledModalActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: ${({ theme }) => theme.spacing.sm};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    flex-direction: column-reverse;
+
+    button {
+      width: 100%;
+    }
+  }
+`;
+
+export const StyledAccordionList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.sm};
+  margin-top: ${({ theme }) => theme.spacing.xs};
 `;
 
 export const StyledRadioGroup = styled.div`
