@@ -17,6 +17,8 @@ export interface FormData {
   comunicaciones: boolean;
   procesamiento: boolean;
   sugerencia?: string;
+  results?: string[];
+  ipLocation?: string;
 }
 
 export interface SendEmailBody {

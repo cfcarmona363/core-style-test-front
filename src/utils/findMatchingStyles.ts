@@ -1,31 +1,33 @@
 import { normalize } from "./normalize";
 import { estilosAdjetivos } from "./styleData";
 
+const MAX_RESULTS = 3;
+
 /**
- * Finds matching styles based on input adjectives
+ * Ranks archetypes by count first, then by count / archetype adjective total
+ * as a tiebreaker, and returns the top 3 keys.
  */
 export function findMatchingStyles(
   inputString: string,
   estilosAdjetivosMap: typeof estilosAdjetivos = estilosAdjetivos
 ): string[] {
-  // Normalize input adjectives
   const inputAdjectives = inputString
     .split(",")
     .map((a) => normalize(a.trim()));
 
-  // Count matches per style
   const matches = Object.entries(estilosAdjetivosMap).map(
     ([style, adjectives]) => {
       const count = adjectives.filter((adj) =>
         inputAdjectives.includes(normalize(adj))
       ).length;
-      return { style, count };
+      const score = adjectives.length > 0 ? count / adjectives.length : 0;
+      return { style, count, score };
     }
   );
 
-  // Filter out styles with 0 matches, sort by count desc, return only keys
   return matches
     .filter((m) => m.count > 0)
-    .sort((a, b) => b.count - a.count)
+    .sort((a, b) => b.count - a.count || b.score - a.score)
+    .slice(0, MAX_RESULTS)
     .map((m) => m.style);
 }

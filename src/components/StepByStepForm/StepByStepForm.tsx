@@ -10,11 +10,13 @@ import { Footer } from "../Footer/Footer";
 import { StepIndicator } from "../StepIndicator/StepIndicator";
 import { Snackbar } from "../Snackbar/Snackbar";
 import { findMatchingStyles } from "../../utils/findMatchingStyles";
+import { arquetipos } from "../../utils/styleData";
 import {
   buildCoreEmailHtml_2cols,
   buildCoreEmailHtml_suggestion,
 } from "../../utils/emailBuilder";
 import { sendEmail } from "../../services/services";
+import { getLocationLabel } from "../../utils/geolocation";
 import { Button } from "../Button/Button";
 import {
   StyledPageWrapper,
@@ -48,6 +50,7 @@ interface FormData {
   comunicaciones: boolean;
   procesamiento: boolean;
   sugerencia: string;
+  ipLocation: string;
 }
 
 const ALL_OTRO_ALERT_MESSAGE =
@@ -164,6 +167,8 @@ export const StepByStepForm: React.FC = () => {
   const [showAllOtroAlert, setShowAllOtroAlert] = useState(false);
   const [showSuggestionModal, setShowSuggestionModal] = useState(false);
   const [suggestionDraft, setSuggestionDraft] = useState("");
+  const [showGeoModal, setShowGeoModal] = useState(false);
+  const [geoDecided, setGeoDecided] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     caracteristicas: "",
     personalidad: [],
@@ -176,6 +181,7 @@ export const StepByStepForm: React.FC = () => {
     comunicaciones: false,
     procesamiento: false,
     sugerencia: "",
+    ipLocation: "",
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>(
@@ -186,6 +192,13 @@ export const StepByStepForm: React.FC = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentStep]);
+
+  // Show geolocation info modal once when reaching the profile step
+  useEffect(() => {
+    if (currentStep === 4 && !geoDecided) {
+      setShowGeoModal(true);
+    }
+  }, [currentStep, geoDecided]);
 
   // Countdown timer for redirect
   useEffect(() => {
@@ -297,14 +310,21 @@ export const StepByStepForm: React.FC = () => {
     try {
       const hasSuggestion = !!formData.sugerencia.trim();
 
+      const matchingStyleKeys = hasSuggestion
+        ? []
+        : findMatchingStyles(formData.personalidad.join(", "));
+      const results = matchingStyleKeys.map(
+        (key) => arquetipos[key as keyof typeof arquetipos] || key,
+      );
+
       const html = hasSuggestion
         ? buildCoreEmailHtml_suggestion(formData.nombre)
         : buildCoreEmailHtml_2cols(
             formData.nombre,
-            findMatchingStyles(formData.personalidad.join(", ")),
+            matchingStyleKeys,
             formData.caracteristicas,
             {
-              ctaUrl: "https://www.corealternativas.com/estilismo-personalizado",
+              ctaUrl: "https://linkly.link/2pZrB",
               ctaLabel: "Reservar asesoría",
             },
           );
@@ -318,7 +338,7 @@ export const StepByStepForm: React.FC = () => {
         subject,
         html,
         replyTo: "core.alternativas@gmail.com",
-        formData,
+        formData: { ...formData, results },
       };
 
       const response = await sendEmail(body);
@@ -404,6 +424,20 @@ export const StepByStepForm: React.FC = () => {
   const handleOpenSuggestionModal = () => {
     setSuggestionDraft(formData.sugerencia);
     setShowSuggestionModal(true);
+  };
+
+  const handleGeoAccept = () => {
+    setShowGeoModal(false);
+    setGeoDecided(true);
+    void getLocationLabel().then((label) => {
+      setFormData((prev) => ({ ...prev, ipLocation: label }));
+    });
+  };
+
+  const handleGeoDecline = () => {
+    setShowGeoModal(false);
+    setGeoDecided(true);
+    setFormData((prev) => ({ ...prev, ipLocation: "-" }));
   };
 
   const handleSubmitSuggestion = () => {
@@ -702,6 +736,31 @@ export const StepByStepForm: React.FC = () => {
                 : undefined
             }
           />
+        )}
+
+        {showGeoModal && (
+          <StyledModalOverlay role="dialog" aria-modal="true">
+            <StyledModalCard>
+              <StyledModalTitle>Compartí tu ubicación</StyledModalTitle>
+              <StyledFormDescription>
+                Nos ayuda a recomendarte lugares y marcas cerca tuyo, y a
+                entender mejor a nuestra comunidad. El navegador te va a pedir
+                permiso; si preferís, podés continuar sin compartirla.
+              </StyledFormDescription>
+              <StyledModalActions>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleGeoDecline}
+                >
+                  Ahora no
+                </Button>
+                <Button type="button" onClick={handleGeoAccept}>
+                  Continuar
+                </Button>
+              </StyledModalActions>
+            </StyledModalCard>
+          </StyledModalOverlay>
         )}
 
         {showSuggestionModal && (

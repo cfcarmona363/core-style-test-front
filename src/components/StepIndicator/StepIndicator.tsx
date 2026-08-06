@@ -14,9 +14,10 @@ interface StepIndicatorProps {
 
 const STEP_DESCRIPTIONS: Record<number, string> = {
   1: "Cuéntanos sobre tu estilo",
-  2: "¿Cuánto tiempo tienes disponible?",
-  3: "Género y ubicación",
-  4: "Tus datos y consentimiento",
+  2: "Elegí los adjetivos que te representan",
+  3: "¿Cuánto tiempo tienes disponible?",
+  4: "Género y ubicación",
+  5: "Tus datos y consentimiento",
 };
 
 export const StepIndicator: React.FC<StepIndicatorProps> = ({

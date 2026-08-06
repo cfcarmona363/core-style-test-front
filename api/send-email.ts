@@ -118,6 +118,12 @@ async function saveToNotion(data: FormData): Promise<void> {
       "Communications Accepted": { checkbox: data.comunicaciones },
       "Data Processing Accepted": { checkbox: data.procesamiento },
       Sugerencia: richText(data.sugerencia ?? ""),
+      Results: {
+        multi_select: (data.results ?? [])
+          .filter(Boolean)
+          .map((name) => ({ name: String(name).trim() })),
+      },
+      IPLocation: richText(data.ipLocation && data.ipLocation.trim() ? data.ipLocation : "-"),
       Date: { date: { start: new Date().toISOString() } },
     },
   });
